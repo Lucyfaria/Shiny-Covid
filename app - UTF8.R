@@ -10,7 +10,9 @@
 library(shiny)
 library(tidyverse)
 library(osmdata)   # Access to Open Street Map data
-library(sf)        # Simple Features (data frame with geometries)   
+library(sf)        # Simple Features (data frame with geometries)  
+library(plotly)
+
 
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
 RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
@@ -30,7 +32,7 @@ ui <- fluidPage(
     
     wellPanel(selectInput('sort',label = h3('Tagesaktuelle Zahlen'), choices = c('Alphabetisch','Aufsteigend','Absteigend'),selected = 1),
     
-    plotOutput('Plot'),
+    plotlyOutput('Plot'),
     p(strong('Die Linien in dem Diagramm stellen die Grenzwerte dar.
               Der Grenzwert 1 liegt immer bei 50 Personen kummuliert von den Neuinfektionen der letzten 7 Tage. 
               Bei diesem Wert ist es noch möglich die Neuinfizierte zu kontaktieren und die Kontaktpersonen zu ermitteln.
@@ -53,17 +55,17 @@ server <- function(input, output) {
     
     
     
-    output$Plot <- renderPlot({
+    output$Plot <- renderPlotly({
      
       switch(input$sort,
       'Absteigend'= {
         
         
-          RKI %>%
+          x<- RKI %>%
           filter(BL %in% input$state) %>%
           mutate(cases7_per_100k = as.integer(cases7_per_100k)) %>%
           ggplot() +
-          aes(x = reorder(county, -cases7_per_100k), weight = cases7_per_100k) +
+          aes(x = reorder(county, -cases7_per_100k), weight = cases7_per_100k, text = paste0(county, "\n", "Fälle: ", cases7_per_100k)) +
           geom_bar(fill = "#0c4c8a") +
           #geom_line(data = limit, aes(x=SH.GEN, y= cases7_per_100k, colour = "red", group = 1)) +
           geom_hline(yintercept = 50, colour = 'orange') +
@@ -72,15 +74,17 @@ server <- function(input, output) {
           theme_minimal()+
           theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1, vjust = 0.2), axis.text.y = element_text(size = 9))+
           scale_color_hue(labels =  "Limit")
+          
+          ggplotly(x, tooltip = 'text') %>% layout(height = 800, width = 800)
       },
       'Alphabetisch' = {
       
         
-          RKI %>%
+          y<-RKI %>%
           filter(BL %in% input$state) %>%
           mutate(cases7_per_100k = as.integer(cases7_per_100k)) %>%
           ggplot() +
-          aes(x = county, weight = cases7_per_100k) +
+          aes(x = county, weight = cases7_per_100k, text = paste0(county, "\n", "Fälle: ", cases7_per_100k)) +
           geom_bar(fill = "#0c4c8a") +
           #geom_line(data = limit, aes(x=SH.GEN, y= cases7_per_100k, colour = "red", group = 1)) +
           geom_hline(yintercept = 50, colour = 'orange') +
@@ -89,15 +93,17 @@ server <- function(input, output) {
           theme_minimal()+
           theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1, vjust = 0.2), axis.text.y = element_text(size = 9))+
           scale_color_hue(labels =  "Limit")
+          
+          ggplotly(y, tooltip = 'text') %>% layout(height = 800, width = 800)
       },
       'Aufsteigend' = {
         
         
-          RKI %>%
+          z<-RKI %>%
           filter(BL %in% input$state) %>%
           mutate(cases7_per_100k = as.integer(cases7_per_100k)) %>%
           ggplot() +
-          aes(x = reorder(county, cases7_per_100k), weight = cases7_per_100k) +
+          aes(x = reorder(county, cases7_per_100k), weight = cases7_per_100k, text = paste0(county, "\n", "Fälle: ", cases7_per_100k)) +
           geom_bar(fill = "#0c4c8a") +
           #geom_line(data = limit, aes(x=SH.GEN, y= cases7_per_100k, colour = "red", group = 1)) +
           geom_hline(yintercept = 50, colour = 'orange') +
@@ -106,6 +112,8 @@ server <- function(input, output) {
           theme_minimal()+
           theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1, vjust = 0.2), axis.text.y = element_text(size = 9))+
           scale_color_hue(labels =  "Limit")
+          
+          ggplotly(z, tooltip = 'text') %>% layout(height = 800, width = 800)
       }
                
                )
