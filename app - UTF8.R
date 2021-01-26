@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(readr)
 library(tidyverse)
 library(osmdata)   # Access to Open Street Map data
 library(sf)        # Simple Features (data frame with geometries)  
@@ -16,7 +17,8 @@ library(shinythemes)
 
 
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
-RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+#RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
 
 RKI3<- RKI2 %>% 
   group_by(Meldedatum,Bundesland) %>% 
@@ -27,35 +29,63 @@ RKI3$Meldedatum <- as.Date(RKI3$Meldedatum, "%Y/%m/%d %H:%M:%S")
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   theme = shinytheme( 'superhero'),
+  
+  titlePanel("Covid-19 Daten"),
+  
+  sidebarLayout(
+    
+    sidebarPanel(
+      selectInput("state", label = h3("Bundesland:"), 
+                  choices = c('Schleswig-Holstein','Hamburg','Niedersachsen','Nordrhein-Westfalen',
+                              'Hessen','Rheinland-Pfalz','Baden-Württemberg','Bayern','Saarland',
+                              'Brandenburg','Mecklenburg-Vorpommern','Sachsen','Sachsen-Anhalt',
+                              'Thüringen','Berlin','Bremen'),
+                  selected = 1),
+    ),
+    
+    mainPanel(
+      tabsetPanel(
+        tabPanel("Tagesaktuelle Daten",
+                 selectInput('sort',
+                             label = h3('Tagesaktuelle Zahlen'), 
+                             choices = c('Alphabetisch','Aufsteigend','Absteigend'),
+                             selected = 1),
+                 
+                 p(strong('Die Linien in dem Diagramm stellen die Grenzwerte dar.
+                            Der Grenzwert 1 liegt immer bei 50 Personen kummuliert von den Neuinfektionen der letzten 7 Tage. 
+                            Bei diesem Wert ist es noch möglich die Neuinfizierte zu kontaktieren und die Kontaktpersonen zu ermitteln.
+                            Bei Überschreiten des zweiten Grenzwertes von 200 wird empfohlen härtere Maßnahmen zu ergreifen bspw. eine Ausgangssperre zu verhängen')),
+        
+                 plotlyOutput('Plot')),
+     
+       
+      
+        tabPanel("Zeitreihendaten", 
+                 dateRangeInput("dates", 
+                                label = h3("Zeitreihe seit Beginn der Pandemie"), 
+                                start = min(RKI2$Meldedatum, na.rm = TRUE)),
+                 
+                 plotlyOutput('Plot2')))
+        
+      )
+    )
+)
+
 
     # Application title
-    titlePanel("Covid-19 Daten"),
-    
-    selectInput("state", label = h3("Bundesland:"), 
-                choices = c('Schleswig-Holstein','Hamburg','Niedersachsen','Nordrhein-Westfalen',
-                            'Hessen','Rheinland-Pfalz','Baden-Württemberg','Bayern','Saarland',
-                            'Brandenburg','Mecklenburg-Vorpommern','Sachsen','Sachsen-Anhalt',
-                            'Thüringen','Berlin','Bremen'),
-                selected = 1),
-    
-    wellPanel(selectInput('sort',label = h3('Tagesaktuelle Zahlen'), choices = c('Alphabetisch','Aufsteigend','Absteigend'),selected = 1),
-              
-    p(strong('Die Linien in dem Diagramm stellen die Grenzwerte dar.
-    Der Grenzwert 1 liegt immer bei 50 Personen kummuliert von den Neuinfektionen der letzten 7 Tage. 
-    Bei diesem Wert ist es noch möglich die Neuinfizierte zu kontaktieren und die Kontaktpersonen zu ermitteln.
-    Bei Überschreiten des zweiten Grenzwertes von 200 wird empfohlen härtere Maßnahmen zu ergreifen bspw. eine Ausgangssperre zu verhängen'))),
-    
-    plotlyOutput('Plot'),
+    #titlePanel("Covid-19 Daten"),
     
     
-    wellPanel(dateRangeInput("dates", label = h3("Zeitreihe seit Beginn der Pandemie"), start = min(RKI2$Meldedatum, na.rm = TRUE)),
     
-    plotlyOutput('Plot2'))
+    #wellPanel(
+    
+    
+    #wellPanel(
    # DT::dataTableOutput("table")
     
     
     
-)
+#)
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
