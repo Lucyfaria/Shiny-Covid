@@ -14,6 +14,7 @@ library(osmdata)   # Access to Open Street Map data
 library(sf)        # Simple Features (data frame with geometries)  
 library(plotly)
 library(shinythemes)
+library(TTR)
 
 
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
@@ -63,7 +64,12 @@ ui <- fluidPage(
         tabPanel("Zeitreihendaten", 
                  dateRangeInput("dates", 
                                 label = h3("Zeitreihe seit Beginn der Pandemie"), 
+                                separator = " bis ",
                                 start = min(RKI2$Meldedatum, na.rm = TRUE)),
+                 selectInput('smooth',
+                             label = h3('Trendlinie anzeigen'), 
+                             choices = c('Nein','Ja'),
+                             selected = 1),
                  
                  plotlyOutput('Plot2')))
         
@@ -90,10 +96,7 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
-    
     # output$table <- DT::renderDataTable(DT::datatable({
-    
-    
     
     output$Plot <- renderPlotly({
      
@@ -114,7 +117,7 @@ server <- function(input, output) {
           theme_minimal()+
           theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1, vjust = 0.2), axis.text.y = element_text(size = 9))
           
-          ggplotly(AbPlot, tooltip = 'text') %>% layout(height = 500)
+          ggplotly(AbPlot, tooltip = 'text') %>% layout(height = 700)
       },
       'Alphabetisch' = {
       
@@ -132,7 +135,7 @@ server <- function(input, output) {
           theme_minimal()+
           theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1, vjust = 0.2), axis.text.y = element_text(size = 9))
           
-          ggplotly(AlpPlot, tooltip = 'text') %>% layout(height = 500)
+          ggplotly(AlpPlot, tooltip = 'text') %>% layout(height = 700)
       },
       'Aufsteigend' = {
         
@@ -150,7 +153,7 @@ server <- function(input, output) {
           theme_minimal()+
           theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1, vjust = 0.2), axis.text.y = element_text(size = 9))
           
-          ggplotly(AufPlot, tooltip = 'text') %>% layout(height = 500)
+          ggplotly(AufPlot, tooltip = 'text') %>% layout(height = 700)
       }
                
                )
@@ -159,66 +162,42 @@ server <- function(input, output) {
     })
    # }))
 
-    
-     output$Plot2 <- renderPlotly({
+    output$Plot2 <- renderPlotly({
+      
+      switch(input$smooth,
+             'Nein' = {
+      
+      ZeitPlotA<- RKI3%>%
+        filter(Bundesland == input$state) %>%
+        filter(Meldedatum >= input$dates[1] & Meldedatum <= input$dates[2]) %>%
+        ggplot() +
+        aes(x = Meldedatum, y = AnzahlFall, text = paste0(input$state, "\n", "Anzahl Fälle: ", AnzahlFall)) +
+        labs(x = "Meldedatum",y = "Anzahl Fälle") +
+        geom_col(size=1L,colour = "#0c4c8a") +
+        theme_minimal()
+      
+      ggplotly(ZeitPlotA, tooltip = 'text') %>% layout(height = 450)
+             
+      }, 'Ja' = {
        
-       ZeitPlot<- RKI3%>%
+        ZeitPlotB<- RKI3%>%
          filter(Bundesland == input$state) %>%
          filter(Meldedatum >= input$dates[1] & Meldedatum <= input$dates[2]) %>%
          ggplot() +
-         aes(x = Meldedatum, y = AnzahlFall, text = paste0(input$state, "\n", "Anzahl Fälle: ", AnzahlFall)) +
-         labs(x = "Meldedatum",y = "Anzahl Fälle") +
-         geom_col(colour = "#0c4c8a") +
+         aes(x = Meldedatum, y = AnzahlFall) +
+         labs(x = "Meldedatum", y = "Anzahl Fälle") +
+         geom_col(size = 1L, colour = "#0c4c8a") +
+         geom_smooth(se = FALSE, span = 0.25, colour ="#6baed6") +
          theme_minimal()
        
-        ggplotly(ZeitPlot, tooltip = 'text') %>% layout(height = 350)
+        
+        ggplotly(ZeitPlotB, tooltip = 'all') %>% layout(height = 450)
        
-       # 
-       # RKI3 %>%
-       #   filter(Meldedatum >= "2020-04-20" & Meldedatum <= "2021-01-25") %>%
-       #   filter(Bundesland %in% 
-       #            "Brandenburg") %>%
-       #   ggplot() +
-       #   aes(x = Meldedatum, y = AnzahlFall) +
-       #   geom_line(size = 0.7, colour = "#0c4c8a") +
-       #   theme_minimal()
-       # 
-       # RKI3 %>% ggplot(aes(Meldedatum,AnzahlFall)) + geom_line()
-       # RKI2$Meldedatum <- as.Date(RKI2$Meldedatum, "%Y/%m/%d %H:%M:%S")
-       # 
-       # ZeitPlot<-RKI2 %>%
-       #   filter(Bundesland %in% input$state) %>%
-       #   filter(Meldedatum >= input$dates[1] & Meldedatum <= input$dates[2]) %>%
-       #   ggplot() +
-       #   aes(x = Meldedatum, weight = AnzahlFall, text = paste0(input$state, "\n", "Fälle: ", AnzahlFall)) +
-       #   labs(x = "Meldedatum",y = "Anzahl Fälle") +
-       #   geom_bar(fill = "#0c4c8a") +
-       #   theme_minimal()
-       # 
-       # ggplotly(ZeitPlot, tooltip = 'all') %>% layout(height = 350)
-       
-       #text = paste0(input$state, "\n", "Fälle: ", count))
-         # RKI2 %>%
-         #   filter(Bundesland %in% "Schleswig-Holstein") %>%
-         #   filter(Meldedatum >= "2020-07-05" & 
-         #            Meldedatum <= "2021-01-25") %>%
-         #   ggplot() +
-         #   aes(x = Meldedatum, weight = AnzahlFall) +
-         #   geom_bar(fill = "#0c4c8a") +
-         #   labs(y = "Anzahl Fälle") +
-         #   theme_minimal()
-       # RKI2 %>%
-       #   filter(Bundesland %in% input$state) %>%
-       #   filter(Meldedatum >=
-       #            input$dates[1] & Meldedatum <= input$dates[2]) %>%
-       #   ggplot() +
-       #   aes(x = Meldedatum, weight = AnzahlFall) +
-       #   geom_bar(fill = "#0c4c8a") +
-       #   theme_minimal()
+     })
     })
     
       
-# TODO: Axenbeschriftungen und Date Group by
+
     
 }
 
