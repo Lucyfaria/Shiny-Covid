@@ -12,6 +12,7 @@ library(tidyverse)
 library(osmdata)   # Access to Open Street Map data
 library(sf)        # Simple Features (data frame with geometries)  
 library(plotly)
+library(shinythemes)
 
 
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
@@ -25,6 +26,7 @@ RKI3$Meldedatum <- as.Date(RKI3$Meldedatum, "%Y/%m/%d %H:%M:%S")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  theme = shinytheme( 'superhero'),
 
     # Application title
     titlePanel("Covid-19 Daten"),
