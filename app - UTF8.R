@@ -14,7 +14,6 @@ library(osmdata)   # Access to Open Street Map data
 library(sf)        # Simple Features (data frame with geometries)  
 library(plotly)
 library(shinythemes)
-library(TTR)
 
 
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
