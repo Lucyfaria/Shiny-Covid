@@ -22,10 +22,10 @@ ui <- fluidPage(
     titlePanel("Covid-19 Daten"),
     
     selectInput("state", label = h3("Bundesland:"), 
-                choices = c('Schleswig-Holstein'='Schleswig-Holstein','Hamburg'= 'Hamburg','Niedersachsen'='Niedersachsen','Nordrhein-Westfalen'='Nordrhein-Westfalen',
-                            'Hessen'='Hessen','Rheinland-Pfalz'='Rheinland-Pfalz','Baden-Württemberg'='Baden-Württemberg','Bayern'='Bayern','Saarland' = 'Saarland',
-                            'Brandenburg' = 'Brandenburg','Mecklenburg-Vorpommern' = 'Mecklenburg-Vorpommern','Sachsen' = 'Sachsen','Sachsen-Anhalt'='Sachsen-Anhalt',
-                            'Thüringen'='Thüringen','Berlin'='Berlin','Bremen'='Bremen'),
+                choices = c('Schleswig-Holstein','Hamburg','Niedersachsen','Nordrhein-Westfalen',
+                            'Hessen','Rheinland-Pfalz','Baden-Württemberg','Bayern','Saarland',
+                            'Brandenburg','Mecklenburg-Vorpommern','Sachsen','Sachsen-Anhalt',
+                            'Thüringen','Berlin','Bremen'),
                 selected = 1),
     
     wellPanel(selectInput('sort',label = h3('Tagesaktuelle Zahlen'), choices = c('Alphabetisch','Aufsteigend','Absteigend'),selected = 1),
