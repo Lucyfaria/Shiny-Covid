@@ -42,11 +42,13 @@ ui <- fluidPage(
                               'Brandenburg','Mecklenburg-Vorpommern','Sachsen','Sachsen-Anhalt',
                               'Thüringen','Berlin','Bremen'),
                   selected = 1),
+      p('Die Reihenfolge der Bundesländer ist gleich der Reihenfolge der Nummern dieser. Sie gehen von Nord nach Süd.')
     ),
     
     mainPanel(
       tabsetPanel(
         tabPanel("Tagesaktuelle Daten",
+                 
                  selectInput('sort',
                              label = h3('Tagesaktuelle Zahlen'), 
                              choices = c('Alphabetisch','Aufsteigend','Absteigend'),
@@ -80,9 +82,20 @@ ui <- fluidPage(
                  plotlyOutput('Plot3'),
                  plotlyOutput('Plot4')),
         
-        tabPanel("Quellen", 
-                 p(strong('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.')),
-                 uiOutput("Link1"))
+        tabPanel("Quellen",
+                 fluidRow(
+                   column(12,
+                          p(strong('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.')),
+                          uiOutput("Link1")
+                   ),
+                   column(8,p('   ')),
+                   column(6,
+                          p('Daten vom Tagesaktuellen Plot wurden runtergeladen am:  ',textOutput("currentDate"))
+                   )      
+                 )
+                 
+                 
+           )
         )
         
       )
@@ -107,8 +120,13 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
+  
     # output$table <- DT::renderDataTable(DT::datatable({
+    output$currentDate <- renderText({
     
+      format(Sys.time(), "%d.%b %Y")
+  })
+  
     output$Plot <- renderPlotly({
      
       switch(input$sort,
