@@ -78,7 +78,11 @@ ui <- fluidPage(
         
         tabPanel("Alter/Geschlecht", 
                  plotlyOutput('Plot3'),
-                 plotlyOutput('Plot4'))
+                 plotlyOutput('Plot4')),
+        
+        tabPanel("Quellen", 
+                 p(strong('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.')),
+                 uiOutput("Link1"))
         )
         
       )
@@ -243,7 +247,11 @@ server <- function(input, output) {
       
       ggplotly(AgeTod, tooltip = 'text') %>% layout(height = 300)
     })
-      
+    
+    url <- a("Tagesdaten", href="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0")
+    output$Link1 <- renderUI({
+      tagList("Link:", url)
+    })
 
     
 }
