@@ -1,12 +1,4 @@
-
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
+# Load Libraries
 library(shiny)
 library(readr)
 library(tidyverse)
@@ -15,18 +7,27 @@ library(sf)        # Simple Features (data frame with geometries)
 library(plotly)
 library(shinythemes)
 
-
+# Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
 #RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
 RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
 
+# Prepare Data
 RKI3<- RKI2 %>% 
   group_by(Meldedatum,Bundesland) %>% 
   summarise(AnzahlFall =sum(AnzahlFall, na.rm = T))
 
 RKI3$Meldedatum <- as.Date(RKI3$Meldedatum, "%Y/%m/%d %H:%M:%S")
 
-# Define UI for application that draws a histogram
+RKI4<- RKI2 %>% 
+  group_by(Altersgruppe,Geschlecht,Bundesland) %>% 
+  summarise(AnzahlFall =sum(AnzahlFall, na.rm = T))
+
+RKI5<- RKI2 %>% 
+  group_by(Altersgruppe,Geschlecht,Bundesland) %>% 
+  summarise(AnzahlTodesfall =sum(AnzahlTodesfall, na.rm = T))
+
+# Define UI for application 
 ui <- fluidPage(
   theme = shinytheme( 'superhero'),
   
@@ -70,12 +71,19 @@ ui <- fluidPage(
                              choices = c('Nein','Ja'),
                              selected = 1),
                  
-                 plotlyOutput('Plot2')))
+                 p(strong('Dieser Plot zeigt die Anzahl der Infizierten pro Bundesland seit Beginn der Pandemie.
+                          Durch den Datumsregler kann der Zeitraum eingegrenzt werden. Eine Trendlinie kann durch die Select-Box optional auf den Plot gelegt werden.')),
+                 
+                 plotlyOutput('Plot2')),
+        
+        tabPanel("Alter/Geschlecht", 
+                 plotlyOutput('Plot3'),
+                 plotlyOutput('Plot4'))
+        )
         
       )
     )
 )
-
 
     # Application title
     #titlePanel("Covid-19 Daten"),
@@ -195,6 +203,46 @@ server <- function(input, output) {
      })
     })
     
+    output$Plot3 <- renderPlotly({
+      
+     
+      AgeFall<- RKI4 %>%
+        filter(!(Altersgruppe %in% "unbekannt")) %>%
+        filter(!(Geschlecht %in% "unbekannt")) %>%
+        
+        filter(Bundesland %in% input$state) %>%
+        ggplot() +
+        aes(x = Altersgruppe, fill = Geschlecht, weight = AnzahlFall,text = paste0("Geschlecht: ",Geschlecht, "\n", "Anzahl Fälle: ", AnzahlFall)) +
+        geom_bar(position = "dodge") +
+        scale_fill_brewer(palette = "Set1", direction = -1) +
+        scale_x_discrete(labels = c("0-4", "5-14", "15-34", "35-59", "60-79","80+")) +
+        labs(x = "Altersgruppe in Jahren", y = "Kummulierte Fälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
+        theme_minimal() +
+        theme(legend.position = "none")
+      
+        ggplotly(AgeFall, tooltip = 'text') %>% layout(height = 300)
+        
+    })
+    
+    output$Plot4 <- renderPlotly({
+      
+      AgeTod<-RKI5 %>%
+        filter(!(Altersgruppe %in% "unbekannt")) %>%
+        filter(!(Geschlecht %in% "unbekannt")) %>%
+        
+        filter(Bundesland %in% input$state) %>%
+        ggplot() +
+        aes(x = Altersgruppe, fill = Geschlecht, weight = AnzahlTodesfall,text = paste0("Geschlecht: ",Geschlecht, "\n", "Anzahl Todesälle: ", AnzahlTodesfall)) +
+        geom_bar(position = "dodge") +
+        scale_fill_brewer(palette = "Reds", direction = 1) +
+        scale_x_discrete(labels = c("0-4", "5-14", "15-34", "35-59", "60-79","80+"))+
+        labs(x = "Altersgruppe", y = "Kummulierte Todesfälle Todesfälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
+        
+        theme_minimal()+
+        theme(legend.position = "none")
+      
+      ggplotly(AgeTod, tooltip = 'text') %>% layout(height = 300)
+    })
       
 
     
