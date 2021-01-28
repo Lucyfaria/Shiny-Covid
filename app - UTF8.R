@@ -42,7 +42,8 @@ ui <- fluidPage(
                               'Brandenburg','Mecklenburg-Vorpommern','Sachsen','Sachsen-Anhalt',
                               'Thüringen'),
                   selected = 1),
-      p('Die Reihenfolge der Bundesländer entspricht der Reihenfolge der zugehörigen Nummern der Bundesländer.  01-Schleswig-Holstein, 02-Hamburg usw.')
+      p('Die Reihenfolge der Bundesländer entspricht der Reihenfolge der zugehörigen Nummern der Bundesländer.  01-Schleswig-Holstein, 02-Hamburg usw.'),
+      htmlOutput('frame')
     ),
     
     mainPanel(
@@ -133,6 +134,12 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
+  output$frame <- renderUI({
+    my_test <- tags$iframe(src="https://sketchfab.com/models/90d920eaea3643a388b0d5855cc38c27/embed?autospin=0.2&amp;autostart=1&amp;ui_controls=1&amp;ui_infos=1&amp;ui_inspector=1&amp;ui_stop=1&amp;ui_theme=dark&amp;ui_watermark=0&amp;ui_watermark_link=0",
+                           height=480, width=560,frameborder=0)
+    print(my_test)
+    my_test
+  })
   
     # output$table <- DT::renderDataTable(DT::datatable({
     output$currentDate <- renderText({
