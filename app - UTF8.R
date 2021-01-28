@@ -79,7 +79,7 @@ ui <- fluidPage(
                  plotlyOutput('Plot2')),
         
         tabPanel("Alter/Geschlecht",
-                 p(strong('Altersverteilung seit Beginn der Pandemie pro Bundesland')),
+                 h3(p(strong('Altersverteilung seit Beginn der Pandemie pro Bundesland'))),
                  plotlyOutput('Plot3'),
                  plotlyOutput('Plot4')),
         
@@ -287,12 +287,12 @@ server <- function(input, output) {
     
     url2 <- a("Zeitreihendaten", href="https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0", target="_blank")
     output$Link2 <- renderUI({
-      tagList("Link:", url)
+      tagList("Link:", url2)
     })
     
     url3 <- a("Github", href="https://github.com/Lucyfaria/Shiny-Covid", target="_blank")
     output$GLink <- renderUI({
-      tagList("Link:", url)
+      tagList("Link:", url3)
     })
 
     
