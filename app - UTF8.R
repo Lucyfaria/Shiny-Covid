@@ -9,8 +9,8 @@ library(shinythemes)
 
 # Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
-#RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
-RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+#RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
 
 # Prepare Data
 RKI3<- RKI2 %>% 
@@ -82,7 +82,7 @@ ui <- fluidPage(
                  plotlyOutput('Plot3'),
                  plotlyOutput('Plot4')),
         
-        tabPanel("Quellen",
+        tabPanel("Infos",
                  fluidRow(
                    column(12,
                           p(strong('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.')),
@@ -238,7 +238,7 @@ server <- function(input, output) {
         geom_bar(position = "dodge") +
         scale_fill_brewer(palette = "Set1", direction = -1) +
         scale_x_discrete(labels = c("0-4", "5-14", "15-34", "35-59", "60-79","80+")) +
-        labs(x = "Altersgruppe in Jahren", y = "Kummulierte Fälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
+        labs(x = "Altersgruppe", y = "Kummulierte Fälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
         theme_minimal() +
         theme(legend.position = "none")
       
@@ -258,7 +258,7 @@ server <- function(input, output) {
         geom_bar(position = "dodge") +
         scale_fill_brewer(palette = "Reds", direction = 1) +
         scale_x_discrete(labels = c("0-4", "5-14", "15-34", "35-59", "60-79","80+"))+
-        labs(x = "Altersgruppe", y = "Kummulierte Todesfälle Todesfälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
+        labs(x = "Altersgruppe", y = "Kummulierte Todesfälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
         
         theme_minimal()+
         theme(legend.position = "none")
