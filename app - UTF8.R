@@ -9,8 +9,8 @@ library(shinythemes)
 
 # Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
-RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
-#RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+#RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
 
 # Prepare Data
 RKI3<- RKI2 %>% 
@@ -37,12 +37,12 @@ ui <- fluidPage(
     
     sidebarPanel(
       selectInput("state", label = h3("Bundesland:"), 
-                  choices = c('Schleswig-Holstein','Hamburg','Niedersachsen','Nordrhein-Westfalen',
-                              'Hessen','Rheinland-Pfalz','Baden-Württemberg','Bayern','Saarland',
+                  choices = c('Schleswig-Holstein','Hamburg','Niedersachsen','Bremen','Nordrhein-Westfalen',
+                              'Hessen','Rheinland-Pfalz','Baden-Württemberg','Bayern','Saarland','Berlin',
                               'Brandenburg','Mecklenburg-Vorpommern','Sachsen','Sachsen-Anhalt',
-                              'Thüringen','Berlin','Bremen'),
+                              'Thüringen'),
                   selected = 1),
-      p('Die Reihenfolge der Bundesländer ist gleich der Reihenfolge der Nummern dieser. Sie gehen von Nord nach Süd.')
+      p('Die Reihenfolge der Bundesländer entspricht der Reihenfolge der zugehörigen Nummern der Bundesländer.  01-Schleswig-Holstein, 02-Hamburg usw.')
     ),
     
     mainPanel(
@@ -57,7 +57,7 @@ ui <- fluidPage(
                  p(strong('Die Linien in dem Diagramm stellen die Grenzwerte dar.
                             Der Grenzwert 1 liegt immer bei 50 Personen kummuliert von den Neuinfektionen der letzten 7 Tage. 
                             Bei diesem Wert ist es noch möglich die Neuinfizierte zu kontaktieren und die Kontaktpersonen zu ermitteln.
-                            Bei Überschreiten des zweiten Grenzwertes von 200 wird empfohlen härtere Maßnahmen zu ergreifen bspw. eine Ausgangssperre zu verhängen')),
+                            Bei Überschreiten des zweiten Grenzwertes von 200 wird empfohlen härtere Maßnahmen zu ergreifen bspw. eine Ausgangssperre zu verhängen.')),
         
                  plotlyOutput('Plot')),
      
@@ -78,21 +78,34 @@ ui <- fluidPage(
                  
                  plotlyOutput('Plot2')),
         
-        tabPanel("Alter/Geschlecht", 
+        tabPanel("Alter/Geschlecht",
+                 p(strong('Altersverteilung seit Beginn der Pandemie pro Bundesland')),
                  plotlyOutput('Plot3'),
                  plotlyOutput('Plot4')),
         
         tabPanel("Infos",
                  fluidRow(
-                   column(12,
-                          p(strong('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.')),
-                          uiOutput("Link1")
-                   ),
-                   column(8,p('   ')),
-                   column(6,
-                          p('Daten vom Tagesaktuellen Plot wurden runtergeladen am:  ',textOutput("currentDate"))
-                   )      
-                 )
+                   wellPanel(
+                     column(width = 12,
+                            p(strong('Tagesaktuelle Daten')),
+                            p('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
+                            uiOutput("Link1")
+                            ),
+                            column(8,p('   ')),
+                            column(6,
+                            p('Daten vom Tagesaktuellen Plot wurden heruntergeladen am:  ',textOutput("currentDate"))))),
+                 fluidRow(
+                   wellPanel(
+                     column(4,
+                            p(strong('Zeitreihendaten')),
+                            p('Die Zeitreihendaten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
+                            uiOutput("Link2")))),
+                 fluidRow(
+                   wellPanel(
+                     column(width= 12,
+                            p(strong('Github')),
+                            p('Der Code dieser Webseite wurde auf Github veröffentlicht'),
+                            uiOutput('GLink'))))
                  
                  
            )
@@ -124,7 +137,8 @@ server <- function(input, output) {
     # output$table <- DT::renderDataTable(DT::datatable({
     output$currentDate <- renderText({
     
-      format(Sys.time(), "%d.%b %Y")
+     # format(Sys.time(), "%d.%b %Y")
+      print(RKI$last_update[1])
   })
   
     output$Plot <- renderPlotly({
@@ -201,7 +215,7 @@ server <- function(input, output) {
         filter(Meldedatum >= input$dates[1] & Meldedatum <= input$dates[2]) %>%
         ggplot() +
         aes(x = Meldedatum, y = AnzahlFall, text = paste0(input$state, "\n", "Anzahl Fälle: ", AnzahlFall)) +
-        labs(x = "Meldedatum",y = "Anzahl Fälle") +
+        labs(x = "Meldedatum",y = "Anzahl der Infizierten pro Bundesland") +
         geom_col(size=1L,colour = "#0c4c8a") +
         theme_minimal()
       
@@ -214,13 +228,13 @@ server <- function(input, output) {
          filter(Meldedatum >= input$dates[1] & Meldedatum <= input$dates[2]) %>%
          ggplot() +
          aes(x = Meldedatum, y = AnzahlFall) +
-         labs(x = "Meldedatum", y = "Anzahl Fälle") +
+         labs(x = "Meldedatum", y = " Anzahl der Infizierten pro Bundesland") +
          geom_col(size = 1L, colour = "#0c4c8a") +
          geom_smooth(se = FALSE, span = 0.25, colour ="#6baed6") +
          theme_minimal()
        
         
-        ggplotly(ZeitPlotB, tooltip = 'all') %>% layout(height = 450)
+        ggplotly(ZeitPlotB, tooltip = 'NULL') %>% layout(height = 450)
        
      })
     })
@@ -238,7 +252,7 @@ server <- function(input, output) {
         geom_bar(position = "dodge") +
         scale_fill_brewer(palette = "Set1", direction = -1) +
         scale_x_discrete(labels = c("0-4", "5-14", "15-34", "35-59", "60-79","80+")) +
-        labs(x = "Altersgruppe", y = "Kummulierte Fälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
+        labs(x = "Altersgruppe", y = "Kummulierte Infizierte", title = "Kummulierte Fälle der gemeldeten Infizierten", subtitle = input$state, fill = "Geschlecht") +
         theme_minimal() +
         theme(legend.position = "none")
       
@@ -258,7 +272,7 @@ server <- function(input, output) {
         geom_bar(position = "dodge") +
         scale_fill_brewer(palette = "Reds", direction = 1) +
         scale_x_discrete(labels = c("0-4", "5-14", "15-34", "35-59", "60-79","80+"))+
-        labs(x = "Altersgruppe", y = "Kummulierte Todesfälle", title = "Altersverteilung seit Beginn der Pandemie pro Bundesland", subtitle = input$state, fill = "Geschlecht") +
+        labs(x = "Altersgruppe", y = "Kummulierte Todesfälle", title = "Kummulierte Fälle der mit oder an Covid-19 Verstorbenen", subtitle = input$state, fill = "Geschlecht") +
         
         theme_minimal()+
         theme(legend.position = "none")
@@ -266,8 +280,18 @@ server <- function(input, output) {
       ggplotly(AgeTod, tooltip = 'text') %>% layout(height = 300)
     })
     
-    url <- a("Tagesdaten", href="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0")
+    url <- a("Tagesdaten", href="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0", target="_blank")
     output$Link1 <- renderUI({
+      tagList("Link:", url)
+    })
+    
+    url2 <- a("Zeitreihendaten", href="https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0", target="_blank")
+    output$Link2 <- renderUI({
+      tagList("Link:", url)
+    })
+    
+    url3 <- a("Github", href="https://github.com/Lucyfaria/Shiny-Covid", target="_blank")
+    output$GLink <- renderUI({
       tagList("Link:", url)
     })
 
