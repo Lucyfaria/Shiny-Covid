@@ -7,10 +7,11 @@ library(sf)        # Simple Features (data frame with geometries)
 library(plotly)
 library(shinythemes)
 
+
 # Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
-#RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
-RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+#RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
 
 # Prepare Data
 RKI3<- RKI2 %>% 
@@ -43,7 +44,7 @@ ui <- fluidPage(
                               'Thüringen'),
                   selected = 1),
       p('Die Reihenfolge der Bundesländer entspricht der Reihenfolge der zugehörigen Nummern der Bundesländer.  01-Schleswig-Holstein, 02-Hamburg usw.'),
-        htmlOutput('frame')
+      htmlOutput('frame')
     ),
     
     mainPanel(
@@ -75,7 +76,7 @@ ui <- fluidPage(
                              selected = 1),
                  
                  p(strong('Dieser Plot zeigt die Anzahl der Infizierten pro Bundesland seit Beginn der Pandemie.
-                          Durch den Datumsregler kann der Zeitraum eingegrenzt werden. Eine Trendlinie kann durch die Select-Box optional auf den Plot gelegt werden.')),
+                          Durch den Datumsregler (amerikanischer Stil) kann der Zeitraum eingegrenzt werden. Eine Trendlinie kann durch die Select-Box optional auf den Plot gelegt werden.')),
                  
                  plotlyOutput('Plot2')),
         
@@ -85,28 +86,22 @@ ui <- fluidPage(
                  plotlyOutput('Plot4')),
         
         tabPanel("Infos",
-                 fluidRow(
-                   wellPanel(
-                     column(width = 12,
-                            p(strong('Tagesaktuelle Daten')),
-                            p('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
-                            uiOutput("Link1")
-                            ),
+                 wellPanel(
+                    p(strong('Tagesaktuelle Daten')),
+                            p('Die tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
+                            uiOutput("Link1"),
                             br(),
-                            column(6,
-                            p('Daten vom Tagesaktuellen Plot wurden heruntergeladen am:  ',textOutput("currentDate"))))),
-                 fluidRow(
+                            p('Die Daten vom tagesaktuellen Plot wurden aktualisiert am: ',textOutput("currentDate"))),
+                 
                    wellPanel(
-                     column(4,
                             p(strong('Zeitreihendaten')),
                             p('Die Zeitreihendaten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
-                            uiOutput("Link2")))),
-                 fluidRow(
+                            uiOutput("Link2")),
+
                    wellPanel(
-                     column(width= 12,
                             p(strong('Github')),
                             p('Der Code dieser Webseite wurde auf Github veröffentlicht'),
-                            uiOutput('GLink'))))
+                            uiOutput('GLink'))
                  
                  
            )
@@ -116,22 +111,8 @@ ui <- fluidPage(
     )
 )
 
-    # Application title
-    #titlePanel("Covid-19 Daten"),
-    
-    
-    
-    #wellPanel(
-    
-    
-    #wellPanel(
-   # DT::dataTableOutput("table")
-    
-    
-    
-#)
 
-# Define server logic required to draw a histogram
+# Define server logic required
 server <- function(input, output) {
   
   output$frame <- renderUI({
@@ -142,7 +123,7 @@ server <- function(input, output) {
     covid
   })
   
-    # output$table <- DT::renderDataTable(DT::datatable({
+    
     output$currentDate <- renderText({
     
      # format(Sys.time(), "%d.%b %Y")
@@ -211,8 +192,7 @@ server <- function(input, output) {
       
      
     })
-   # }))
-
+   
     output$Plot2 <- renderPlotly({
       
       switch(input$smooth,
