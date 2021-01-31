@@ -43,7 +43,7 @@ ui <- fluidPage(
                               'Thüringen'),
                   selected = 1),
       p('Die Reihenfolge der Bundesländer entspricht der Reihenfolge der zugehörigen Nummern der Bundesländer.  01-Schleswig-Holstein, 02-Hamburg usw.'),
-      htmlOutput('frame')
+        htmlOutput('frame')
     ),
     
     mainPanel(
@@ -92,7 +92,7 @@ ui <- fluidPage(
                             p('Die Tagesaktuellen Daten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
                             uiOutput("Link1")
                             ),
-                            column(8,p('   ')),
+                            br(),
                             column(6,
                             p('Daten vom Tagesaktuellen Plot wurden heruntergeladen am:  ',textOutput("currentDate"))))),
                  fluidRow(
@@ -135,10 +135,11 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   output$frame <- renderUI({
-    my_test <- tags$iframe(src="https://sketchfab.com/models/90d920eaea3643a388b0d5855cc38c27/embed?autospin=0.2&amp;autostart=1&amp;ui_controls=1&amp;ui_infos=1&amp;ui_inspector=1&amp;ui_stop=1&amp;ui_theme=dark&amp;ui_watermark=0&amp;ui_watermark_link=0",
-                           height=480, width=560,frameborder=0)
-    print(my_test)
-    my_test
+    covid <- tags$iframe(src="https://sketchfab.com/models/90d920eaea3643a388b0d5855cc38c27/embed?autospin=0.2&amp;autostart=1&amp;ui_controls=1&amp;ui_infos=1&amp;ui_inspector=1&amp;ui_stop=1&amp;ui_theme=dark&amp;ui_watermark=0&amp;ui_watermark_link=0",
+                           style = 'width:100%',
+                           frameborder=0)
+    print(covid)
+    covid
   })
   
     # output$table <- DT::renderDataTable(DT::datatable({
