@@ -10,8 +10,8 @@ library(shinythemes)
 
 # Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
-#RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
-RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+#RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
 KH<- read_csv("https://diviexchange.blob.core.windows.net/%24web/DIVI_Intensivregister_Auszug_pro_Landkreis.csv")
 KH <- RKI %>% full_join(KH, by = c("RS" = "gemeindeschluessel"))
 
@@ -109,6 +109,11 @@ ui <- fluidPage(
                             p(strong('Zeitreihendaten')),
                             p('Die Zeitreihendaten stammen vom Robert-Koch-Institut und werden täglich aktualisiert.'),
                             uiOutput("Link2")),
+                   
+                   wellPanel(
+                            p(strong('DVI-Daten')),
+                            p('Die DVI-Daten stammen von der Webseite des deutschen Intensivregisters.'),
+                            uiOutput('Link3')),
 
                    wellPanel(
                             p(strong('Github')),
@@ -366,6 +371,11 @@ server <- function(input, output) {
     url2 <- a("Zeitreihendaten", href="https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0", target="_blank")
     output$Link2 <- renderUI({
       tagList("Link:", url2)
+    })
+    
+    url4 <- a("DVI", href="https://www.intensivregister.de/#/aktuelle-lage/reports", target="_blank")
+    output$Link3 <- renderUI({
+      tagList("Link:", url4)
     })
     
     url3 <- a("Github", href="https://github.com/Lucyfaria/Shiny-Covid", target="_blank")
