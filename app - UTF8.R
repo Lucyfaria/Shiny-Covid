@@ -10,8 +10,10 @@ library(shinythemes)
 
 # Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
-RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
-#RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+#RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
+RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+KH<- read_csv("https://diviexchange.blob.core.windows.net/%24web/DIVI_Intensivregister_Auszug_pro_Landkreis.csv")
+KH <- RKI %>% full_join(KH, by = c("RS" = "gemeindeschluessel"))
 
 # Prepare Data
 RKI3<- RKI2 %>% 
@@ -69,6 +71,7 @@ ui <- fluidPage(
                  dateRangeInput("dates", 
                                 label = h3("Zeitreihe seit Beginn der Pandemie"), 
                                 separator = " bis ",
+                                format = "%d.%b %Y",
                                 start = min(RKI2$Meldedatum, na.rm = TRUE)),
                  selectInput('smooth',
                              label = h3('Trendlinie anzeigen'), 
@@ -79,6 +82,10 @@ ui <- fluidPage(
                           Durch den Datumsregler (amerikanischer Stil) kann der Zeitraum eingegrenzt werden. Eine Trendlinie kann durch die Select-Box optional auf den Plot gelegt werden.')),
                  
                  plotlyOutput('Plot2')),
+        tabPanel("DVI",
+                plotlyOutput('Plot5'),
+                br(),
+                p('Insgesamt sind leider ',textOutput('insgesamt'),'Menschen im Krankenhaus')),
         
         tabPanel("Alter/Geschlecht",
                  h3(p(strong('Altersverteilung seit Beginn der Pandemie pro Bundesland'))),
@@ -202,7 +209,7 @@ server <- function(input, output) {
         filter(Bundesland == input$state) %>%
         filter(Meldedatum >= input$dates[1] & Meldedatum <= input$dates[2]) %>%
         ggplot() +
-        aes(x = Meldedatum, y = AnzahlFall, text = paste0(input$state, "\n", "Anzahl Fälle: ", AnzahlFall)) +
+        aes(x = Meldedatum, y = AnzahlFall, text = paste0(input$state, "\n", "Anzahl Fälle: ", AnzahlFall, '\n',Meldedatum)) +
         labs(x = "Meldedatum",y = "Anzahl der Infizierten pro Bundesland") +
         geom_col(size=1L,colour = "#0c4c8a") +
         theme_minimal()
@@ -266,6 +273,66 @@ server <- function(input, output) {
         theme(legend.position = "none")
       
       ggplotly(AgeTod, tooltip = 'text') %>% layout(height = 300)
+    })
+    
+    output$Plot5 <- renderPlotly({
+      KH2 <- KH %>%
+        filter(BL %in% input$state)
+      
+      KH2 <- subset(KH2, select = c(BL,GEN,anzahl_meldebereiche,faelle_covid_aktuell,faelle_covid_aktuell_beatmet,anzahl_standorte,betten_frei,
+                                  betten_belegt))
+      
+      KH2$unbeatmet <- (KH2$faelle_covid_aktuell - KH2$faelle_covid_aktuell_beatmet)
+      
+      KH2_Beatmung <- subset(KH2, select = c(BL,GEN,faelle_covid_aktuell_beatmet, unbeatmet))
+      
+      KH2_Beatmung <- KH2_Beatmung %>% 
+        rename(
+          beatmet = faelle_covid_aktuell_beatmet, 
+          unbeatmet = unbeatmet)
+      
+      KH_Max <- max(KH$faelle_covid_aktuell, na.rm = TRUE)
+      KH_Mean <- mean(KH$faelle_covid_aktuell,na.rm = TRUE)
+      KH_Breaks <- if(KH_Max  > 19){10} else if(KH_Max> 40){20}else {KH_Max}
+      
+      KH2_Beatmung <- pivot_longer(KH2_Beatmung,cols = c(beatmet, unbeatmet))
+      
+    
+      ggplot(KH2_Beatmung) +
+        aes(x = GEN, fill = name, weight = value) +
+        geom_bar() +
+        #scale_y_continuous(n.breaks = as.integer(KH_Breaks))+
+        scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))+
+        #coord_cartesian(ylim = c(1,KH_Max))+
+        scale_fill_brewer(palette = "Paired", direction = 1) +
+        labs(x = " ", y = " ", title = "Beatmung der aktuellen Fälle in den Krankenhäusern pro Bundesland", fill = " ") +
+        ggthemes::theme_hc()+
+        theme(axis.text.x = element_text(size= 9,angle = 90, hjust = 1), axis.text.y = element_text(size = 9))+
+        theme(legend.key.size = unit(0.5,"cm")) +
+        theme(legend.position = "top")
+    })
+      output$insgesamt <- renderText({
+        KH3 <- KH %>%
+          filter(BL %in% input$state)
+        
+        KH3 <- subset(KH3, select = c(BL,GEN,anzahl_meldebereiche,faelle_covid_aktuell,faelle_covid_aktuell_beatmet,anzahl_standorte,betten_frei,
+                                      betten_belegt))
+        
+        KH3$unbeatmet <- (KH3$faelle_covid_aktuell - KH3$faelle_covid_aktuell_beatmet)
+        
+        KH3_Beatmung <- subset(KH3, select = c(BL,GEN,faelle_covid_aktuell_beatmet, unbeatmet))
+        
+        KH3_Beatmung <- KH3_Beatmung %>% 
+          rename(
+            beatmet = faelle_covid_aktuell_beatmet, 
+            unbeatmet = unbeatmet)
+        
+        # KH_Max <- max(KH$faelle_covid_aktuell, na.rm = TRUE)
+        # KH_Mean <- mean(KH$faelle_covid_aktuell,na.rm = TRUE)
+        # KH_Breaks <- if(KH_Max  > 19){10} else if(KH_Max> 40){20}else {KH_Max}
+        
+        KH3_Beatmung <- pivot_longer(KH3_Beatmung,cols = c(beatmet, unbeatmet))
+        insgesamt <- sum(as.integer(KH3_Beatmung$value),na.rm = TRUE)
     })
     
     url <- a("Tagesdaten", href="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0", target="_blank")
