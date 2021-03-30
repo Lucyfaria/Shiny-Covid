@@ -11,7 +11,7 @@ library(shinythemes)
 # Read in Data
 RKI <- read_csv(file ="https://opendata.arcgis.com/datasets/917fc37a709542548cc3be077a786c17_0.csv")
 RKI2 <- read_csv('https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.csv')
-#RKI2 <- read_csv("C:/Users/Nina/Downloads/RKI_COVID19 (1).csv")
+
 KH<- read_csv("https://diviexchange.blob.core.windows.net/%24web/DIVI_Intensivregister_Auszug_pro_Landkreis.csv")
 KH <- RKI %>% full_join(KH, by = c("RS" = "gemeindeschluessel"))
 
